@@ -25,11 +25,23 @@ public:
 	using value_type = std::remove_cvref_t<T>;
 	using size_type = uint32_t;
 
-	default_allocator() = default;
-	~default_allocator() = default;
+	default_allocator() noexcept = default;
+	~default_allocator() noexcept = default;
+	default_allocator(const default_allocator&) noexcept = default;
+	default_allocator(default_allocator&&) noexcept = default;
+	default_allocator& operator=(const default_allocator&) noexcept = default;
+	default_allocator& operator=(default_allocator&&) noexcept = default;
 
-	value_type* allocate(size_type size);
-	void deallocate(value_type* p, size_type size);
+	inline value_type* allocate(size_type size)
+	{
+		return reinterpret_cast<value_type*>(::operator new[](size*sizeof(value_type));
+	}
+
+	inline void deallocate(value_type* p, size_type size)
+	{
+		assert(p);
+		::operator delete[](reinterpret_cast<void*>(p), size);
+	}
 
 };
 static_assert(allocator_concept<default_allocator<void>, void>);
