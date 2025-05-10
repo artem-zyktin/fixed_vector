@@ -18,3 +18,7 @@ This container is optimized for predictable memory behavior, cache-friendly iter
 
 In performance-critical applications such as game engines, memory reallocation during runtime can cause frame drops, fragmentation, and cache inefficiencies.  
 **fixed_vector** was designed to avoid these issues by enforcing a fixed memory footprint after initialization.
+
+## Important notice
+
+In case of removing items with `index != size()-1` the last item and `fvec[index]` will be swapped and the last item (`fvec[index]` now) will be remove. That means that index of items can't be fixated.
