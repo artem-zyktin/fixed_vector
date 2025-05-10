@@ -153,6 +153,281 @@ public:
 
 	const_reverse_iterator crbegin() const;
 	const_reverse_iterator crend() const;
+
+private:
+	using this_type = fixed_vector<T, allocator_t>;
+
+	allocator_t allocator_ = {};
+
+	ptr_type data_ = nullptr;
+	size_type capacity_ = 0;
+	size_type size_ = 0;
+
+	void release_();
+
+	template<class fv_t, class tranfsfer_fn>
+		requires std::same_as<std::remove_cvref_t<fv_t>, this_type>
+	this_type& copy_or_move_assignment_(fv_t&& other, tranfsfer_fn&& transfer_strategy);
 };
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::fixed_vector(size_type capacity)
+{
+	assert(capacity > 0);
+
+	data_ = allocator_.allocate(capacity);
+	assert(data_);
+
+	capacity_ = capacity;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::~fixed_vector() noexcept
+{
+	release_();
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::fixed_vector(const fixed_vector& other)
+	: allocator_(other.allocator_)
+	, data_(allocator_.allocate(other.capacity_))
+	, capacity_(other.capacity_)
+	, size_(other.size_)
+{
+	assert(data_);
+	std::uninitialized_copy_n(other.data_, other.size_, data_);
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::fixed_vector(fixed_vector&& other) noexcept
+	: allocator_(std::move(other.allocator_))
+	, data_(std::exchange(nother.data_, nullptr))
+	, capacity_(std::exchange(other.capacity_, 0))
+	, size_(std::exchange(other.size_, 0))
+{
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::operator=(const fixed_vector& other)
+{
+	return copy_or_move_assignment_(other, [](const fixed_vector& other, ptr_type dst){
+		std::copy_n(other.data_, other.size_, dst);
+	});
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::operator=(fixed_vector&& other) noexcept
+{
+	return  copy_or_move_assignment_(other, [](fixed_vector&& other, ptr_type dst){
+		std::move_n(other.data_, other.size_, dst);
+
+		other.data_ = nullptr;
+		other.capacity_ = 0;
+		other.size_ = 0;
+	});
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline void fixed_vector<T, allocator_t>::push_back(cref_type item)
+{
+	assert(data_);
+	assert(size_ < capacity_);
+
+	std::uninitialized_copy_n(&item, 1, data_+size_);
+	++size_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline void fixed_vector<T, allocator_t>::push_back(rref_type item)
+{
+	assert(data_);
+	assert(size_ < capacity_);
+
+	std::uninitialized_move_n(&item, 1, data_+size_);
+	++size_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline void fixed_vector<T, allocator_t>::release_()
+{
+	if (data_)
+	{
+		clean();
+
+		allocator_.deallocate(data_, capacity_);
+		data_ = nullptr;
+		capacity_ = 0;
+	}
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline void fixed_vector<T, allocator_t>::remove(size_type index)
+{
+	assert(data_);
+	if (index != size_-1)
+		std::swap(data_[index], data_[size_-1]);
+
+	std::destroy_at(&data_[size_-1]);
+	--size_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline void fixed_vector<T, allocator_t>::clean()
+{
+	std::destroy_n(data_, size_);
+	size_ = 0;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::cref_type fixed_vector<T, allocator_t>::operator[](size_type index) const
+{
+	return data_[index];
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::ref_type fixed_vector<T, allocator_t>::operator[](size_type index)
+{
+	return data_[index];
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::cref_type fixed_vector<T, allocator_t>::at(size_type index) const
+{
+	assert(index < size_);
+	return data_[index];
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::ref_type fixed_vector<T, allocator_t>::at(size_type index)
+{
+	assert(index < size_);
+	return data_[index];
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::size_type fixed_vector<T, allocator_t>::size() const
+{
+	return size_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::size_type fixed_vector<T, allocator_t>::capacity() const
+{
+	return capacity_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline bool fixed_vector<T, allocator_t>::full() const
+{
+	return size_ == capacity_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline bool fixed_vector<T, allocator_t>::empty() const
+{
+	return size_ == 0;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::iterator fixed_vector<T, allocator_t>::begin()
+{
+	return data_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::iterator fixed_vector<T, allocator_t>::end()
+{
+	return data_ + size_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::const_iterator fixed_vector<T, allocator_t>::cbegin() const
+{
+	return data_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::const_iterator fixed_vector<T, allocator_t>::cend() const
+{
+	return data_ + size_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::const_iterator fixed_vector<T, allocator_t>::begin() const
+{
+	return cbegin();
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::const_iterator fixed_vector<T, allocator_t>::end() const
+{
+	return cend();
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::reverse_iterator fixed_vector<T, allocator_t>::rbegin()
+{
+	return reverse_iterator(end());
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::reverse_iterator fixed_vector<T, allocator_t>::rend()
+{
+	return reverse_iterator(begin());
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::const_reverse_iterator fixed_vector<T, allocator_t>::crbegin() const
+{
+	return rbegin();
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+inline fixed_vector<T, allocator_t>::const_reverse_iterator fixed_vector<T, allocator_t>::crend() const
+{
+	return rend();
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+template<class ...arg_type>
+inline void fixed_vector<T, allocator_t>::emplace_back(arg_type&& ...arg)
+{
+	assert(data_);
+	assert(size_ < capacity_);
+	std::construct_at(&data_[size_], std::forward<arg_type>(arg)...);
+	++size_;
+}
+
+template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
+template<class fv_t, class tranfsfer_fn>
+	requires std::same_as<std::remove_cvref_t<fv_t>, fixed_vector<T, allocator_t>>
+inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::copy_or_move_assignment_(fv_t&& other, tranfsfer_fn&& transfer_strategy)
+{
+	if (this == &other)
+		return;
+
+	if constexpr (std::is_rvalue_reference_v<decltype(other)>)
+		allocator_ = std::move(other.allocator_);
+	else
+		allocator_ = other.allocator_;
+
+	if (other.capacity_ > capacity_)
+	{
+		release_();
+		data_ = allocator_.allocate(other.capacity_);
+		assert(data_);
+
+		capacity_ = other.capacity_;
+	}
+	else
+	{
+		clean();
+	}
+
+	size_ = other.size_;
+	transfer_strategy(std::forward<fv_t>(other), data_);
+
+	return *this;
+}
 
 }
