@@ -54,7 +54,7 @@ public:
 
 	using size_type = uint32_t;
 
-	fixed_vector(size_type size);
+	fixed_vector(size_type capacity);
 	~fixed_vector() noexcept;
 
 	fixed_vector(const fixed_vector& other);
