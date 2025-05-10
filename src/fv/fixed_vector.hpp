@@ -127,8 +127,8 @@ public:
 	/// </summary>
 	void clean();
 
-	cref_type operator=(size_type index) const;
-	ref_type  operator=(size_type index);
+	cref_type operator[](size_type index) const;
+	ref_type  operator[](size_type index);
 
 	cref_type at(size_type index) const;
 	ref_type  at(size_type index);
