@@ -46,6 +46,12 @@ public:
 };
 static_assert(allocator_concept<default_allocator<void>, void>);
 
+/// <summary>
+/// Fixed-capacity vector. Memory is allocated once on construction and never reallocated.
+/// May allocate a new buffer only when copying or moving from another vector with larger capacity.
+/// </summary>
+/// <typeparam name="T">Items type</typeparam>
+/// <typeparam name="allocator_t">Allocator</typeparam>
 template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t = default_allocator<std::remove_cvref_t<T>>>
 class fixed_vector
 {
@@ -66,24 +72,60 @@ public:
 
 	using size_type = uint32_t;
 
+	/// <summary>
+	/// Ctor
+	/// </summary>
+	/// <param name="capacity"> - size of allocated memory block</param>
 	fixed_vector(size_type capacity);
 	~fixed_vector() noexcept;
 
+	/// <summary>
+	/// Copy ctor
+	/// </summary>
 	fixed_vector(const fixed_vector& other);
+
+	/// <summary>
+	/// Move ctor
+	/// </summary>
+	fixed_vector(fixed_vector&& other) noexcept;
+
+	/// <summary>
+	/// Copy assignment operator
+	/// </summary>
 	fixed_vector& operator=(const fixed_vector& other);
 
-	fixed_vector(fixed_vector&& other) noexcept;
+	/// <summary>
+	/// Move assignment operator
+	/// </summary>
 	fixed_vector& operator=(fixed_vector&& other) noexcept;
 
+	/// <summary>
+	/// Add item to the end (copying)
+	/// </summary>
 	void push_back(cref_type item);
+
+	/// <summary>
+	/// Add item to the end (moving)
+	/// </summary>
 	void push_back(rref_type item);
 
+
+	/// <summary>
+	/// Emplacing item to the end
+	/// </summary>
 	template<class... arg_type>
 	void emplace_back(arg_type&&... arg);
 
-	void remove(size_type item);
+	/// <summary>
+	/// Remove item. If index != size()-1, then item will be swapped with the last item and only then last item destroyed
+	/// </summary>
+	/// <param name="index"> - index of removing item</param>
+	void remove(size_type index);
 
-	void clear();
+	/// <summary>
+	/// Destroy all items
+	/// </summary>
+	void clean();
 
 	cref_type operator=(size_type index) const;
 	ref_type  operator=(size_type index);
