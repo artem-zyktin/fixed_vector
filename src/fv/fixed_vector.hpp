@@ -54,7 +54,6 @@ public:
 
 	using size_type = uint32_t;
 
-	fixed_vector() noexcept;
 	fixed_vector(size_type size);
 	~fixed_vector() noexcept;
 
