@@ -55,6 +55,7 @@ static_assert(allocator_concept<default_allocator<void>, void>);
 template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t = default_allocator<std::remove_cvref_t<T>>>
 class fixed_vector
 {
+	static_assert(std::is_nothrow_move_constructible_v<allocator_t>, "Allocator must be nothrow move constructible");
 public:
 	using value_type = std::remove_cvref_t<T>;
 
