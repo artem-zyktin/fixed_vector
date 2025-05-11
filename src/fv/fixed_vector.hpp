@@ -244,7 +244,7 @@ inline void fixed_vector<T, allocator_t>::push_back(rref_type item)
 	assert(data_);
 	assert(size_ < capacity_);
 
-	std::uninitialized_move_n(&item, 1, data_+size_);
+	std::construct_at(&data_[size_], std::move(item));
 	++size_;
 }
 
