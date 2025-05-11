@@ -412,9 +412,12 @@ inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::copy_or_move_
 
 	if (other.capacity_ > capacity_)
 	{
+		// check if we can allocate new memory block and only then destroy our data
+		new_data = allocator_.allocate(other.capacity_);
+		assert(new_data);
+
 		release_();
-		data_ = allocator_.allocate(other.capacity_);
-		assert(data_);
+		data_ = new_data;
 
 		capacity_ = other.capacity_;
 	}
