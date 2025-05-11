@@ -158,8 +158,6 @@ public:
 	const_reverse_iterator crend() const;
 
 private:
-	using this_type = fixed_vector<T, allocator_t>;
-
 	allocator_t allocator_ = {};
 
 	ptr_type data_ = nullptr;
@@ -169,8 +167,8 @@ private:
 	void release_();
 
 	template<class fv_t, class tranfsfer_fn>
-		requires std::same_as<std::remove_cvref_t<fv_t>, this_type>
-	this_type& copy_or_move_assignment_(fv_t&& other, tranfsfer_fn&& transfer_strategy);
+		requires std::same_as<std::remove_cvref_t<fv_t>, fixed_vector<T, allocator_t>>
+	fixed_vector<T, allocator_t>& copy_or_move_assignment_(fv_t&& other, tranfsfer_fn&& transfer_strategy);
 };
 
 template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
