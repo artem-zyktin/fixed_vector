@@ -405,7 +405,7 @@ template<class fv_t, class tranfsfer_fn>
 inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::copy_or_move_assignment_(fv_t&& other, tranfsfer_fn&& transfer_strategy)
 {
 	if (this == &other)
-		return;
+		return *this;
 
 	if constexpr (std::is_rvalue_reference_v<decltype(other)>)
 		allocator_ = std::move(other.allocator_);
