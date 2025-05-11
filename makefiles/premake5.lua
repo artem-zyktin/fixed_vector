@@ -80,7 +80,7 @@ project('test')
 		src_dir .. 'test/**.cpp'
 	}
 
-	links{'ecs_core','gtest'}
+	links{'gtest'}
 	libdirs{output_dir}
 
 	filter('configurations:debug')
