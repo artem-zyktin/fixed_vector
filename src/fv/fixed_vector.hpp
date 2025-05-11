@@ -34,15 +34,17 @@ public:
 
 	inline value_type* allocate(size_type size)
 	{
-		return reinterpret_cast<value_type*>(::operator new[](size*sizeof(value_type));
+		return reinterpret_cast<value_type*>(::operator new[](n_bytes_(size)));
 	}
 
 	inline void deallocate(value_type* p, size_type size)
 	{
 		assert(p);
-		::operator delete[](reinterpret_cast<void*>(p), size);
+		::operator delete[](reinterpret_cast<void*>(p), n_bytes_(size));
 	}
 
+private:
+	constexpr size_type n_bytes_(size_type size) { return size * sizeof(value_type); }
 };
 static_assert(allocator_concept<default_allocator<void>, void>);
 
