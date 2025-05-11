@@ -6,8 +6,6 @@
 #include <utility>
 #include <iterator>
 
-namespace fv
-{
 
 template<class allocator_type, class value_type>
 concept allocator_concept = std::default_initializable<allocator_type> &&
@@ -429,6 +427,4 @@ inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::copy_or_move_
 	transfer_strategy(std::forward<fv_t>(other), data_);
 
 	return *this;
-}
-
 }

@@ -5,8 +5,6 @@
 namespace fixed_vector_test
 {
 
-using namespace fv;
-
 TEST(default_allocator, allocate_deallocate)
 {
 	default_allocator<int> al;
