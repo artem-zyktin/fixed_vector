@@ -202,7 +202,7 @@ inline fixed_vector<T, allocator_t>::fixed_vector(const fixed_vector& other)
 template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
 inline fixed_vector<T, allocator_t>::fixed_vector(fixed_vector&& other) noexcept
 	: allocator_(std::move(other.allocator_))
-	, data_(std::exchange(nother.data_, nullptr))
+	, data_(std::exchange(other.data_, nullptr))
 	, capacity_(std::exchange(other.capacity_, 0))
 	, size_(std::exchange(other.size_, 0))
 {
