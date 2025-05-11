@@ -210,7 +210,7 @@ template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
 inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::operator=(const fixed_vector& other)
 {
 	return copy_or_move_assignment_(other, [](const fixed_vector& other, ptr_type dst){
-		std::copy_n(other.data_, other.size_, dst);
+		std::uninitialized_copy_n(other.data_, other.size_, dst);
 	});
 }
 
