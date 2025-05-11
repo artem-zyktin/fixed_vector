@@ -219,8 +219,8 @@ inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::operator=(con
 template<class T, allocator_concept<std::remove_cvref_t<T>> allocator_t>
 inline fixed_vector<T, allocator_t>& fixed_vector<T, allocator_t>::operator=(fixed_vector&& other) noexcept
 {
-	return  copy_or_move_assignment_(other, [](fixed_vector&& other, ptr_type dst){
-		std::move_n(other.data_, other.size_, dst);
+	return  copy_or_move_assignment_(std::move(other), [](fixed_vector&& other, ptr_type dst){
+		std::uninitialized_move_n(other.data_, other.size_, dst);
 
 		other.data_ = nullptr;
 		other.capacity_ = 0;
